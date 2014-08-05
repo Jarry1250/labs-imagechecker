@@ -30,7 +30,7 @@
 	if( $lang !== '' && $category !== '' ){
 		// connect to database
 		$mysqli = dbconnect( get_databasename( 'en', 'wikipedia' ) );
-		$query = "select distinct p1.page_title from page p1 inner join categorylinks on cl_to='" . mysql_real_escape_string( str_replace( " ", "_", $category ) ) . "' and cl_from=p1.page_id and p1.page_namespace=1 inner join page p2 on p2.page_title=p1.page_title and p2.page_namespace=0 inner join imagelinks on il_to like '%jpg%' and il_to not like '%icon%' and il_to not like '%stub%' and il_to not like '%flag%' and il_from=p2.page_id";
+		$query = "select distinct p1.page_title from page p1 inner join categorylinks on cl_to='" . $mysqli->real_escape_string( str_replace( " ", "_", $category ) ) . "' and cl_from=p1.page_id and p1.page_namespace=1 inner join page p2 on p2.page_title=p1.page_title and p2.page_namespace=0 inner join imagelinks on il_to like '%jpg%' and il_to not like '%icon%' and il_to not like '%stub%' and il_to not like '%flag%' and il_from=p2.page_id";
 		if( $lang == "en" ){
 			// Load blacklist line-by-line to keep memory down
 			$handle = fopen( 'enblacklist.txt', 'r' ) or die( "can't open file" );
