@@ -22,15 +22,17 @@
 	require_once( '/data/project/jarry-common/public_html/global.php' );
 
 	$lang = ( isset( $_GET['lang'] ) ) ? $_GET['lang'] : '';
-	$category = ( isset( $_GET['category'] ) ) ? $_GET['category'] :'';
+	$category = ( isset( $_GET['category'] ) ) ? $_GET['category'] : '';
+	$includePNGs = ( isset( $_GET['pngs'] ) && $_GET['pngs'] == 'yes' );
 	if( !preg_match( "/^([a-z]{2,3}|)$/", $lang ) ){
 		die( "Bad language name entered" );
 	}
 
+	$pngString = $includePNGs ? " OR il_to like '%png' OR il_to like '%PNG'" : "";
 	if( $lang !== '' && $category !== '' ){
 		// connect to database
 		$mysqli = dbconnect( get_databasename( 'en', 'wikipedia' ) );
-		$query = "select distinct p1.page_title from page p1 inner join categorylinks on cl_to='" . $mysqli->real_escape_string( str_replace( " ", "_", $category ) ) . "' and cl_from=p1.page_id and p1.page_namespace=1 inner join page p2 on p2.page_title=p1.page_title and p2.page_namespace=0 inner join imagelinks on (il_to like '%jpg' OR il_to like '%JPG') and il_to not like '%icon%' and il_to not like '%stub%' and il_to not like '%flag%' and il_from=p2.page_id";
+		$query = "select distinct p1.page_title from page p1 inner join categorylinks on cl_to='" . $mysqli->real_escape_string( str_replace( " ", "_", $category ) ) . "' and cl_from=p1.page_id and p1.page_namespace=1 inner join page p2 on p2.page_title=p1.page_title and p2.page_namespace=0 inner join imagelinks on (il_to like '%jpg' OR il_to like '%JPG'$pngString) and il_to not like '%icon%' and il_to not like '%stub%' and il_to not like '%flag%' and il_from=p2.page_id";
 		if( $lang == "en" ){
 			// Load blacklist line-by-line to keep memory down
 			$handle = fopen( 'enblacklist.txt', 'r' ) or die( "can't open file" );
@@ -57,8 +59,8 @@
 		page tagged as requiring one, it can be used successfully for any 'Main article has a .jpg image but talk page
 		is in category Y type requests'. It was written after a request by en Wikipedia user PC78 and the SQL was
 		written by toolserver admin flyingparchment and then edited by me. Technically speaking, this tool assumes only
-		.jpg images are qualifying works and that any .jpg image (bar some limitations, see below) is indeed a
-		qualifying work (even if its a 2x2 pixel template image, which are thankfully very rare).</p>
+		.jpg (and, if selected, .png) images are qualifying works and that any such image (bar some limitations, see
+		below) is indeed a qualifying work (even if its a 2x2 pixel template image, which are thankfully very rare).</p>
 	<h3>Blacklisted</h3>
 	<p>Files containg 'stub', 'flag' or 'icon' are automatically assumed to not be qualifying works. The English
 		Wikipedia also has its own blacklist, which you can <a href="enblacklist.php">view and add to</a>. The scenario
@@ -75,6 +77,9 @@
 		<p><label for="category">Talk page category:&nbsp;</label>
 			<input type="text" id="category" name="category" style="width: 200px"
 				value="<?php echo htmlspecialchars( $category ); ?>" required="required"/></p>
+		<p><label for="pngs">Include PNGs as potential images:&nbsp;</label>
+			<input type="checkbox" id="pngs" name="pngs"
+				   value="yes" <?php if( $includePNGs ) echo 'checked="checked" '; ?>/></p>
 		<input type="submit" value="Go!"/>
 	</form>
 <?php
